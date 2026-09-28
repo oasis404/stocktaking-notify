@@ -12,8 +12,8 @@ package com.accutech.stocktaking.notify.model;
  *
  * <p>闸门顺序（前一关不过，后面的根本不会执行）：</p>
  * <pre>
- * GATE-STATUS → GATE-HOLIDAY → GATE-WINDOW → GATE-LIST → TEST-MODE
- *            → BENEFICIARY → DAY-LIMIT → 发送
+ * GATE-STATUS → GATE-HOLIDAY(START豁免) → GATE-WINDOW → GATE-LIST(含接收权限过滤)
+ *            → BENEFICIARY → GATE-ROLE(可选) → DAY-LIMIT → 发送
  * </pre>
  */
 public enum GateNode {
@@ -30,11 +30,14 @@ public enum GateNode {
     /** 收件人与数量只取本次盘点清单（按 planId） */
     GATE_LIST("GATE-LIST", "收件人与数量只取本次盘点清单（按 planId）"),
 
-    /** 测试模式白名单限制（fail-closed） */
-    TEST_MODE("TEST-MODE", "测试模式白名单限制（未配置白名单时一条都不发）"),
+    /** 接收方资格：持有接收权限点的角色成员才有资格（"权限点存在即启用"，过滤在清单提供方实现） */
+    RECEIVE_PERM("RECEIVE-PERM", "接收方资格：持有接收权限点的角色成员才会进入收件人清单"),
 
     /** 逐人：必须是资产责任人本人 + 有待盘点资产 + 有企业微信账号 */
     BENEFICIARY("BENEFICIARY", "收件人资格：必须是有待盘点资产的资产责任人本人"),
+
+    /** 逐人：角色过滤，只发给指定角色的成员（未配置角色时闸门关闭） */
+    GATE_ROLE("GATE-ROLE", "角色过滤：只发给配置角色的成员"),
 
     /** 逐人：同一责任人同一自然日只发一条 */
     DAY_LIMIT("DAY-LIMIT", "同一责任人同一自然日只发一条");

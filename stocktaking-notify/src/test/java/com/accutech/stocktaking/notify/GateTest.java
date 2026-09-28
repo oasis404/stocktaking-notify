@@ -11,7 +11,6 @@ import com.accutech.stocktaking.notify.model.NotifyType;
 import com.accutech.stocktaking.notify.model.RespUser;
 import com.accutech.stocktaking.notify.model.StocktakingPlan;
 import com.accutech.stocktaking.notify.support.HolidayCalendar;
-import com.accutech.stocktaking.notify.support.TestModeScope;
 import com.accutech.stocktaking.notify.testing.InMemorySupport;
 
 import org.junit.jupiter.api.DisplayName;
@@ -105,31 +104,6 @@ class GateTest {
         GateOutcome noWebComId = gate.check(context, InMemorySupport.userWithoutWebComId(16018L, "徐涛", "A10470", 2));
         assertFalse(noWebComId.isPassed());
         assertEquals(GateNode.BENEFICIARY, noWebComId.getNode());
-    }
-
-    @Test
-    @DisplayName("测试模式：解析、白名单匹配与 fail-closed 语义")
-    void testModeScope() {
-        assertFalse(TestModeScope.parse(null).isOn());
-        assertFalse(TestModeScope.parse("").isOn());
-        assertFalse(TestModeScope.parse("testMode=false|accounts=A10529").isOn());
-
-        // 只发工号 A10529
-        TestModeScope byAccount = TestModeScope.parse("testMode=true|accounts=A10529|setBy=admin");
-        assertTrue(byAccount.isOn());
-        assertTrue(byAccount.hasCondition());
-        assertTrue(byAccount.matches(InMemorySupport.user(16017L, "余楚贤", "A10529", "yuchuxian", 1)));
-        assertFalse(byAccount.matches(InMemorySupport.user(16018L, "徐涛", "A10470", "xutao", 1)));
-
-        // 按用户ID
-        TestModeScope byUserId = TestModeScope.parse("testMode=true|userIds=16017");
-        assertTrue(byUserId.matches(InMemorySupport.user(16017L, "余楚贤", "A10529", "yuchuxian", 1)));
-        assertFalse(byUserId.matches(InMemorySupport.user(16018L, "徐涛", "A10470", "xutao", 1)));
-
-        // 开启但没有任何条件 = 一个人都不命中（fail-closed）
-        TestModeScope emptyScope = TestModeScope.parse("testMode=true|setBy=admin");
-        assertTrue(emptyScope.isOn());
-        assertFalse(emptyScope.hasCondition());
     }
 
     @Test

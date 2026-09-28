@@ -1,8 +1,10 @@
+com\accutech\stocktaking\notify\NotifyWalkthroughTest.class
 com\accutech\stocktaking\notify\testing\InMemorySupport$InMemoryRespUserProvider.class
 com\accutech\stocktaking\notify\GateTest.class
 com\accutech\stocktaking\notify\NotifyServiceTest.class
 com\accutech\stocktaking\notify\testing\InMemorySupport$SentBatch.class
 com\accutech\stocktaking\notify\testing\InMemorySupport.class
+com\accutech\stocktaking\notify\ReviewAcceptanceTest.class
 com\accutech\stocktaking\notify\testing\InMemorySupport$InMemoryDailyLimitStore.class
 com\accutech\stocktaking\notify\testing\InMemorySupport$InMemoryMessageSender.class
-com\accutech\stocktaking\notify\testing\InMemorySupport$InMemoryTestModeConfigProvider.class
+com\accutech\stocktaking\notify\testing\InMemorySupport$InMemoryNotifyAuditRepository.class

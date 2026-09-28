@@ -1,10 +1,12 @@
 package com.accutech.stocktaking.notify.testing;
 
+import com.accutech.stocktaking.notify.model.NotifyResult;
+import com.accutech.stocktaking.notify.model.NotifyType;
 import com.accutech.stocktaking.notify.model.RespUser;
 import com.accutech.stocktaking.notify.port.DailyLimitStore;
 import com.accutech.stocktaking.notify.port.MessageSender;
+import com.accutech.stocktaking.notify.port.NotifyAuditRepository;
 import com.accutech.stocktaking.notify.port.RespUserProvider;
-import com.accutech.stocktaking.notify.port.TestModeConfigProvider;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,10 +41,16 @@ public final class InMemorySupport {
         /** 与账号无关的失败原因（模拟"地址未配置/服务异常"） */
         private String globalFailReason;
 
+        /** 让 send 直接抛异常（模拟接入方 HTTP 超时等运行时异常） */
+        private String throwMessage;
+
         @Override
         public SendReceipt send(List<String> webComIds, String content) {
             List<String> ids = new ArrayList<String>(webComIds);
             batches.add(new SentBatch(ids, content));
+            if (throwMessage != null) {
+                throw new RuntimeException(throwMessage);
+            }
             if (globalFailReason != null) {
                 return SendReceipt.fail(globalFailReason);
             }
@@ -65,6 +73,11 @@ public final class InMemorySupport {
 
         public InMemoryMessageSender withGlobalFail(String reason) {
             this.globalFailReason = reason;
+            return this;
+        }
+
+        public InMemoryMessageSender withThrowing(String message) {
+            this.throwMessage = message;
             return this;
         }
 
@@ -173,31 +186,6 @@ public final class InMemorySupport {
     }
 
     /**
-     * 内存版测试模式配置。
-     */
-    public static final class InMemoryTestModeConfigProvider implements TestModeConfigProvider {
-
-        private String config;
-
-        public InMemoryTestModeConfigProvider() {
-            this(null);
-        }
-
-        public InMemoryTestModeConfigProvider(String config) {
-            this.config = config;
-        }
-
-        public void setConfig(String config) {
-            this.config = config;
-        }
-
-        @Override
-        public String readConfig() {
-            return config;
-        }
-    }
-
-    /**
      * 快捷构造责任人
      */
     public static RespUser user(long userId, String name, String account, String webComId, int pending) {
@@ -208,5 +196,50 @@ public final class InMemorySupport {
     /** 构造一个"没有企微号"的责任人 */
     public static RespUser userWithoutWebComId(long userId, String name, String account, int pending) {
         return new RespUser(userId, name, account, null, "财务部", null, null, pending + 1, pending);
+    }
+
+    /** 构造一个"指定角色"的责任人（角色 key / 名称逗号分隔，可传 null） */
+    public static RespUser userWithRole(long userId, String name, String account, String webComId, int pending,
+                                        String roleKeys, String roleNames) {
+        return new RespUser(userId, name, account, webComId, "财务部", roleKeys, roleNames,
+                pending + 3, pending);
+    }
+
+    /**
+     * 内存版发送留痕库：记录每次 save 的结果行，可模拟落库失败。
+     */
+    public static final class InMemoryNotifyAuditRepository implements NotifyAuditRepository {
+
+        private final List<NotifyResult> saved = new ArrayList<NotifyResult>();
+
+        private final List<Integer> saveCalls = new ArrayList<Integer>();
+
+        private boolean failOnSave;
+
+        @Override
+        public void save(Integer planId, NotifyType type, String bizDate, List<NotifyResult> results) {
+            saveCalls.add(planId);
+            if (failOnSave) {
+                throw new RuntimeException("审计库连接失败");
+            }
+            if (results != null) {
+                saved.addAll(results);
+            }
+        }
+
+        public InMemoryNotifyAuditRepository withSaveFailure() {
+            this.failOnSave = true;
+            return this;
+        }
+
+        /** 已落库的结果行 */
+        public List<NotifyResult> saved() {
+            return saved;
+        }
+
+        /** save 被调用的计划ID序列（验证调用次数） */
+        public List<Integer> saveCalls() {
+            return saveCalls;
+        }
     }
 }

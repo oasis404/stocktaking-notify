@@ -4,10 +4,10 @@ C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking
 C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking\notify\send\GroupDispatcher.java
 C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking\notify\support\DailyLimitGuard.java
 C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking\notify\model\RespUser.java
-C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking\notify\port\TestModeConfigProvider.java
 C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking\notify\StocktakingNotifyService.java
 C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking\notify\gate\PlanGate.java
 C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking\notify\gate\TimeWindowGate.java
+C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking\notify\port\NotifyAuditRepository.java
 C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking\notify\gate\HolidayGate.java
 C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking\notify\port\DailyLimitStore.java
 C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking\notify\port\RespUserProvider.java
@@ -15,7 +15,6 @@ C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking
 C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking\notify\port\MessageSender.java
 C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking\notify\model\NotifyContext.java
 C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking\notify\model\NotifySummary.java
-C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking\notify\support\TestModeScope.java
 C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking\notify\gate\PersonGate.java
 C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking\notify\model\NotifyDecision.java
 C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking\notify\model\StocktakingPlan.java
@@ -23,4 +22,5 @@ C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking
 C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking\notify\gate\PlanStatusGate.java
 C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking\notify\gate\GateOutcome.java
 C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking\notify\support\HolidayCalendar.java
+C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking\notify\gate\RoleGate.java
 C:\Users\Chg10\Desktop\stocktaking-notify\src\main\java\com\accutech\stocktaking\notify\model\NotifyType.java

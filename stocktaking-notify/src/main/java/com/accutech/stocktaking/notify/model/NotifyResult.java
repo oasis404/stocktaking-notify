@@ -79,9 +79,15 @@ public final class NotifyResult {
         return this;
     }
 
-    /** 标记：已通过全部闸门，等待与同文案的人合并群发 */
+    /**
+     * 标记：已通过全部闸门，等待与同文案的人合并群发。
+     *
+     * <p>独立于 {@link NotifyDecision#SKIP}：被闸门正常拦下是 SKIP，
+     * 而这里的人在「发送环节」—— 如果最后仍停留在此状态，说明发送环节出了问题，
+     * 汇总按失败统计，不能和"闸门跳过"混在一起误导运维。</p>
+     */
     public NotifyResult pending(String reason) {
-        this.decision = NotifyDecision.SKIP;
+        this.decision = NotifyDecision.PENDING;
         this.gateNode = null;
         this.reason = reason;
         return this;

@@ -5,7 +5,7 @@
 
 [![Java](https://img.shields.io/badge/Java-8%2B-blue.svg)](#环境要求)
 [![Maven](https://img.shields.io/badge/Maven-3.6%2B-blue.svg)](#快速开始)
-[![Tests](https://img.shields.io/badge/tests-23%20passed-brightgreen.svg)](#测试与验证)
+[![Tests](https://img.shields.io/badge/tests-38%20passed-brightgreen.svg)](#测试与验证)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
@@ -30,17 +30,19 @@
 
 ## 核心特性
 
-- **闸门链**：`状态 → 节假日 → 时间窗 → 本次清单 → 测试模式 → 收件人资格 → 一天一条 → 发送`，任一不过即不发。
+- **闸门链**：`状态 → 节假日(START豁免) → 时间窗 → 本次清单(含接收权限过滤) → 收件人资格 → 一天一条 → 发送`，任一不过即不发。
 - **一人一天一条**：限流键维度只到「人 + 自然日」，**跨通知类型、跨计划**共用同一把锁（开始通知与提醒不会叠加）。
 - **只发给资产责任人本人**：收件人只取本次计划清单，账号只按用户ID精确匹配，**不做姓名兜底**。
+- **接收权限点闸门（"权限点存在即启用"）**：只有持有接收权限的角色成员才进入收件人清单；
+  "只发给个别人"= 在角色管理里按需勾选，**无任何参数开关**（v1.1.0 起取代测试模式）。
 - **按文案分组群发**：同文案的人合并为一次调用（接收人 `|` 分隔，单次上限 1000 自动分片），
   200 人从"1~2 分钟"降到"十几秒"；回执带出坏账号时**剔除后重发**，不让一个坏账号拖垮整批。
-- **测试模式（fail-closed）**：只发白名单（工号/用户ID/部门/角色）；开启但未配白名单 = **一条都不发**；
-  不设自动过期，只能显式关闭。
+- **免登录深链文案（2026-09-28 定稿）**：消息内嵌企微 OAuth 深链，员工点击即免登录进入系统；
+  三种文案（开始/提醒/最后一天）经基准测试逐字钉死。
 - **演练模式**：只做只读判定与文案预览，**不占限流键、不发送**，且会告诉你"今天这个人还会不会被发到"。
-- **全链路可观测**：统一节点标识 `GATE-STATUS / GATE-HOLIDAY / GATE-WINDOW / GATE-LIST / TEST-MODE / BENEFICIARY / DAY-LIMIT`，
+- **全链路可观测**：统一节点标识 `GATE-STATUS / GATE-HOLIDAY / GATE-WINDOW / GATE-LIST / RECEIVE-PERM / BENEFICIARY / DAY-LIMIT`，
   日志、返回结果、文档三处互相对照，出问题不需要猜。
-- **零运行时依赖**：核心只依赖 SLF4J；企微发送、Redis、数据库全部通过 4 个扩展点接入。
+- **零运行时依赖**：核心只依赖 SLF4J；企微发送、Redis、数据库全部通过 3 个扩展点接入。
 
 ---
 
@@ -60,13 +62,13 @@
 
 ```
                       ┌─────────────────── 计划级（整批） ───────────────────┐
- 触发源 ──────────▶ ①GATE-STATUS ─▶ ②GATE-HOLIDAY ─▶ ③GATE-WINDOW ─▶ ④GATE-LIST ─▶ ⑤TEST-MODE
- （改状态/定时/诊断）  状态=进行中      节假日与周末     开始~截止之间      本次清单取数     白名单
-                      └──────────────────────────────────────────────────────┘
+ 触发源 ──────────▶ ①GATE-STATUS ─▶ ②GATE-HOLIDAY ─▶ ③GATE-WINDOW ─▶ ④GATE-LIST
+ （改状态/定时/诊断）  状态=进行中      节假日与周末     开始~截止之间      本次清单取数
+                      └──────────────────────────────────────────────────────┘        （含接收权限过滤）
                                             │ 全部通过
                                             ▼
                       ┌─────────────────── 逐人 ───────────────────┐
-                     ⑥BENEFICIARY（有待盘点 + 有企微号） ─▶ ⑦DAY-LIMIT（一人一天一条）
+                     ⑤BENEFICIARY（有待盘点 + 有企微号） ─▶ ⑥DAY-LIMIT（一人一天一条）
                       └────────────────────────────────────────────┘
                                             │ 占位成功
                                             ▼
@@ -93,16 +95,21 @@
 mvn test
 ```
 
-预期输出：`Tests run: 23, Failures: 0, Errors: 0`，并且能看到演示用例打印出的整条闸门链路日志。
+预期输出：`Tests run: 46, Failures: 0, Errors: 0`，并且能看到演示用例打印出的整条闸门链路日志。
+
+想直接看「评审修复逐项验收报告」（可截图当验收证据）：
+
+```bash
+mvn test -Dtest=ReviewAcceptanceTest
+```
 
 ### 5 行代码接入
 
 ```java
 StocktakingNotifyService engine = StocktakingNotifyService.builder()
-        .respUserProvider(myRespUserProvider)        // 收件人数据源（按 planId 查本次清单）
+        .respUserProvider(myRespUserProvider)        // 收件人数据源（按 planId 查本次清单；在此实现接收权限过滤）
         .messageSender(myWeChatMessageSender)        // 消息发送器（支持一次发多人）
         .dailyLimitStore(myRedisDailyLimitStore)     // 一天一条限流存储（SET NX EX）
-        .testModeConfigProvider(myConfigProvider)    // 测试模式配置（可选）
         .build();
 
 // 计划状态改为「进行中」时
@@ -134,12 +141,12 @@ stocktaking-notify
 │   ├── StocktakingNotifyService.java      # 引擎主体：闸门链编排 + 逐人判定 + 群发 + 汇总
 │   ├── model/                             # 领域模型（计划/责任人/结果/上下文/节点标识）
 │   ├── gate/                              # 闸门：状态、节假日、时间窗、收件人
-│   ├── port/                              # 扩展点：MessageSender / DailyLimitStore / RespUserProvider / TestModeConfigProvider
-│   ├── support/                           # 工作日历、测试模式、限流器、文案模板
+│   ├── port/                              # 扩展点：MessageSender / DailyLimitStore / RespUserProvider
+│   ├── support/                           # 工作日历、限流器、文案模板（含免登录深链）
 │   └── send/                              # 分组群发器 + 待发项
-├── src/test/java/…                        # 23 条单测 + 1 个可执行演示
+├── src/test/java/…                        # 38 条单测（含 ReviewAcceptanceTest 验收脚本）+ 1 个可执行演示
 ├── examples/                              # 接入示例（企微发送器 / Redis 限流 / 参考 SQL，不参与编译）
-└── docs/                                  # 项目简介 / 架构与闸门链路 / 接入指南 / 测试与排错手册
+└── docs/                                  # 项目简介 / 架构与闸门链路 / 接入指南 / 测试与排错手册 / 真实测试方案
 ```
 
 ---
@@ -152,6 +159,7 @@ stocktaking-notify
 | [`docs/02-架构与闸门链路.md`](docs/02-架构与闸门链路.md) | 每个闸门的判定条件、失败原因、日志格式、并发与一致性说明 |
 | [`docs/03-接入指南.md`](docs/03-接入指南.md) | 4 个扩展点的实现要点 + Spring 装配示例 + 数据库参考 SQL |
 | [`docs/04-测试与排错手册.md`](docs/04-测试与排错手册.md) | 傻瓜版日常测试流程（逐条用例 + 预期结果）与线上排错对照表 |
+| [`docs/05-真实测试方案.md`](docs/05-真实测试方案.md) | **从 0 跑到生产灰度**的五阶段方案：S0 单测 → S1 验收脚本 → S2 企微沙箱真发 → S3 脏数据演练 → S4 生产灰度，含 4 个 port 的最小实现、留痕表 DDL、日志关键字速查、验收打勾清单、回滚步骤 |
 
 ---
 
@@ -163,23 +171,26 @@ mvn test
 
 ```
 [INFO] Running com.accutech.stocktaking.notify.GateTest
-[INFO] Tests run: 6,  Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 5,  Failures: 0, Errors: 0, Skipped: 0
 [INFO] Running com.accutech.stocktaking.notify.NotifyServiceTest
-[INFO] Tests run: 17, Failures: 0, Errors: 0, Skipped: 0
-[INFO] Tests run: 23, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 22,  Failures: 0, Errors: 0, Skipped: 0
+[INFO] Running com.accutech.stocktaking.notify.ReviewAcceptanceTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 38, Failures: 0, Errors: 0, Skipped: 0
 [INFO] BUILD SUCCESS
 ```
 
 测试覆盖的承诺（每条都有断言守着）：
 
 - 同文案只调用一次发送接口（分组群发生效）
-- 状态不是进行中 / 节假日 / 未开始 / 已过期 → 整批不发
+- 状态不是进行中 / 节假日 / 未开始 / 已过期 → 整批不发；**开始通知豁免节假日**（周末改状态不会永久丢失）
 - 已盘完的人、没有企微号的人 → 单独跳过，其余人照发
-- 同一人同一天第二次发送被跳过，且**不再调用发送接口**
-- 开始通知与每日提醒共用同一把锁
-- 测试模式未配白名单 → 一条都不发；按工号限定 → 只发命中的人
-- 测试模式跳过"一天一条"，方便反复联调
-- 演练模式不发送、不占限流键，并提示"真实发送会被一天一条拦下"
+- 同一人同一天第二次发送被跳过，且**不再调用发送接口**（含开始通知，一天一条是硬承诺）
+- **发送接口抛异常**：整批判失败、释放限流键、异常不冒泡到调用方
+- **发送环节崩溃不会被统计成"跳过"**（PENDING 独立状态，汇总按失败计）
+- **三种文案逐字钉死**（2026-09-28 定稿：免登录深链 + 「鼎勤信息管理」/「个人盘点清单」命名 + 初次登录提示）
+- **GATE-ROLE 角色过滤**：只发给配置角色的成员，其余人跳过并写明原因
+- **发送留痕落库**：真实执行落库、演练不落、落库故障不影响发送
 - 坏账号从名单剔除后重发成功；与账号无关的失败整批判失败并释放限流键
 
 ---
@@ -209,8 +220,9 @@ A：可以。实现 `MessageSender` 即可，其余逻辑完全复用（"按文�
 
 - [ ] 工作日历表实现（支持"调休上班日要发"）
 - [ ] `MessageSender` 的失败退避重试（应对平台频率限制）
-- [ ] 发送留痕落库（当前依赖调用方记录 `NotifyResult`）
+- [x] 发送留痕落库（`NotifyAuditRepository`，v1.0.2）
 - [ ] 多期计划合并提醒（把同一人多期的待盘点数合成一条）
+- [ ] `examples/` 接入样例补齐（企微发送器 / Redis 限流 / 参考 SQL，当前见 `docs/05` 第 3.2 节）
 
 ---
 

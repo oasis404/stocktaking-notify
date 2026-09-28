@@ -25,9 +25,6 @@ public final class NotifyContext {
     /** 演练模式：只判定与预览，不占用限流键、不发送 */
     private final boolean dryRun;
 
-    /** 测试模式是否开启（由服务在过完计划级闸门后回填，供"测试模式跳过一天一条"使用） */
-    private boolean testModeOn;
-
     public NotifyContext(StocktakingPlan plan, NotifyType type, LocalDate today, boolean dryRun) {
         this.plan = plan;
         this.type = type;
@@ -49,14 +46,6 @@ public final class NotifyContext {
 
     public boolean isDryRun() {
         return dryRun;
-    }
-
-    public boolean isTestModeOn() {
-        return testModeOn;
-    }
-
-    public void setTestModeOn(boolean testModeOn) {
-        this.testModeOn = testModeOn;
     }
 
     /** 业务日期文本（yyyy-MM-dd），用于限流键与日志 */

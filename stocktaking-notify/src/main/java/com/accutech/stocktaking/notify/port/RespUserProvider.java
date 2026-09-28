@@ -13,6 +13,9 @@ import java.util.Map;
  *   <li>只查本次计划（planId）的清单快照，不跨期、不取全量资产；</li>
  *   <li>账号只按 {@code resp_user_id} 精确匹配用户表，<b>不做姓名兜底</b>（同名会发错人）；</li>
  *   <li>匹配不到有效账号的责任人不要塞进来 —— 宁可这个人收不到，也不能发给别人。</li>
+ *   <li><b>已盘完的人（assetPending=0）也要返回</b>，由引擎的收件人闸门判 SKIP 并写明原因 ——
+ *       不要在 SQL 层把他们过滤掉：否则他们盘完后清单变空，运维看到的
+ *       "无责任人数据"提示会被误当成数据问题去排查（实际是盘点已全部完成）。</li>
  * </ol>
  *
  * <p>参考 SQL 见 {@code examples/MyBatisRespUserProvider.sql}。</p>

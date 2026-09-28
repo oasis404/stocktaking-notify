@@ -13,6 +13,8 @@ import java.util.List;
  *   <li>失败时请把平台返回的<b>不可用账号</b>放进回执（企微的 {@code invaliduser} / {@code unlicenseduser}），
  *       否则"一个坏账号拖垮整批人"无法补救；</li>
  *   <li>不要把异常吞掉后返回成功 —— 返回 {@link SendReceipt#fail} 才能让上层标记失败并释放限流键。</li>
+ *   <li>实现<b>允许直接抛异常</b>（用 HttpURLConnection / RestTemplate 时超时抛异常是常态）：
+ *       引擎会把该批标记为失败、释放限流键，并把异常兜在发送环节内部，不会冒泡到调用方。</li>
  * </ul>
  */
 public interface MessageSender {

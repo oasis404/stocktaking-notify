@@ -5,11 +5,10 @@ com\accutech\stocktaking\notify\port\DailyLimitStore.class
 com\accutech\stocktaking\notify\StocktakingNotifyService$Builder.class
 com\accutech\stocktaking\notify\support\DailyLimitGuard.class
 com\accutech\stocktaking\notify\gate\PersonGate.class
-com\accutech\stocktaking\notify\StocktakingNotifyService$Builder$1.class
 com\accutech\stocktaking\notify\model\RespUser.class
 com\accutech\stocktaking\notify\port\RespUserProvider.class
+com\accutech\stocktaking\notify\gate\RoleGate.class
 com\accutech\stocktaking\notify\gate\GateOutcome.class
-com\accutech\stocktaking\notify\support\TestModeScope.class
 com\accutech\stocktaking\notify\port\MessageSender$SendReceipt.class
 com\accutech\stocktaking\notify\model\NotifyDecision.class
 com\accutech\stocktaking\notify\gate\HolidayGate.class
@@ -17,8 +16,8 @@ com\accutech\stocktaking\notify\send\PendingSend.class
 com\accutech\stocktaking\notify\model\NotifyType.class
 com\accutech\stocktaking\notify\model\NotifyResult.class
 com\accutech\stocktaking\notify\support\HolidayCalendar.class
+com\accutech\stocktaking\notify\port\NotifyAuditRepository.class
 com\accutech\stocktaking\notify\model\StocktakingPlan.class
-com\accutech\stocktaking\notify\port\TestModeConfigProvider.class
 com\accutech\stocktaking\notify\model\NotifyContext.class
 com\accutech\stocktaking\notify\gate\PlanStatusGate.class
 com\accutech\stocktaking\notify\port\MessageSender.class

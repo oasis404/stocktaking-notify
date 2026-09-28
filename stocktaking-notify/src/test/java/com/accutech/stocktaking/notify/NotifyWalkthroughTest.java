@@ -8,7 +8,6 @@ import com.accutech.stocktaking.notify.testing.InMemorySupport;
 import com.accutech.stocktaking.notify.testing.InMemorySupport.InMemoryDailyLimitStore;
 import com.accutech.stocktaking.notify.testing.InMemorySupport.InMemoryMessageSender;
 import com.accutech.stocktaking.notify.testing.InMemorySupport.InMemoryRespUserProvider;
-import com.accutech.stocktaking.notify.testing.InMemorySupport.InMemoryTestModeConfigProvider;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -46,7 +45,7 @@ class NotifyWalkthroughTest {
     }
 
     @Test
-    @DisplayName("演练演示：正常发送 / 一天一条 / 节假日 / 测试模式")
+    @DisplayName("演练演示：正常发送 / 一天一条 / 节假日")
     void walkthrough() {
         InMemoryRespUserProvider provider = new InMemoryRespUserProvider().withUsers(23,
                 InMemorySupport.user(16017L, "余楚贤", "A10529", "yuchuxian", 1),
@@ -57,7 +56,6 @@ class NotifyWalkthroughTest {
                 .respUserProvider(provider)
                 .messageSender(sender)
                 .dailyLimitStore(store)
-                .testModeConfigProvider(new InMemoryTestModeConfigProvider())
                 .build();
 
         // ① 正常发送

@@ -46,6 +46,10 @@ public final class NotifySummary {
                     failed++;
                 } else if (NotifyDecision.PREVIEW == decision) {
                     preview++;
+                } else if (NotifyDecision.PENDING == decision) {
+                    // 待群发却没等到结果回写 = 发送环节异常、人没发出去。
+                    // 必须按失败计：算成"跳过"会让运维误以为是被闸门正常拦下
+                    failed++;
                 } else {
                     skipped++;
                 }
